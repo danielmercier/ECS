@@ -195,7 +195,7 @@ int main() {
   em = EntityManager();
 
   // Let's create a big number of entities
-  const int NB_ENTITIES = 10000000;
+  const int NB_ENTITIES = 100000;
 
   auto start = std::chrono::high_resolution_clock::now();
 
@@ -255,7 +255,7 @@ int main() {
     called++;
   });
 
-  assert(called == 2);
+  assert(called == 1);
 
   return 0;
 }
