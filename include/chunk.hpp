@@ -31,7 +31,7 @@ ChunkLayout computeChunkLayout(Archetype archetype) noexcept
    {
       if (archetype[type])
       {
-         entitySize += ComponentTypeId::size(type);
+          entitySize += ComponentTypeId::size(static_cast<ComponentType>(type));
       }
    }
 
@@ -47,7 +47,7 @@ ChunkLayout computeChunkLayout(Archetype archetype) noexcept
       if (archetype[type])
       {
          layout.componentStart[type] = currentStart;
-         currentStart += layout.capacity * ComponentTypeId::size(type);
+         currentStart += layout.capacity * ComponentTypeId::size(static_cast<ComponentType>(type));
       }
    }
 

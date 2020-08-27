@@ -4,17 +4,17 @@
 #include <iostream>
 
 struct Position {
-  float x;
-  float y;
+  int x;
+  int y;
 
-  explicit Position(float newX, float newY) : x(newX), y(newY) {}
+  explicit Position(int newX, int newY) : x(newX), y(newY) {}
 };
 
 struct Velocity {
-  float x;
-  float y;
+  int x;
+  int y;
 
-  explicit Velocity(float newX, float newY) : x(newX), y(newY) {}
+  explicit Velocity(int newX, int newY) : x(newX), y(newY) {}
 };
 
 struct Render {
@@ -201,12 +201,13 @@ int main() {
 
   for (size_t i = 0; i < NB_ENTITIES; i++) {
     Entity e;
+    int x = static_cast<int>(i);
 
     if (i % 2 != 0) {
-      e = em.createEntity<Position, Velocity>(Position(i, i), Velocity(i, i));
+      e = em.createEntity<Position, Velocity>(Position(x, x), Velocity(x, x));
     } else {
       e = em.createEntity<Position, Velocity, Comflabulation>(
-          Position(i, i), Velocity(i, i), Comflabulation(1.0f, true, 0));
+          Position(x, x), Velocity(x, x), Comflabulation(1.0f, true, 0));
     }
 
     assert(e == i);
@@ -254,7 +255,7 @@ int main() {
     called++;
   });
 
-  assert(called == 1);
+  assert(called == 2);
 
   return 0;
 }
