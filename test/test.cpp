@@ -172,24 +172,18 @@ int main() {
   // Iterate over all position
   // Use incr to check for all position added just above
   int incr = 0;
-  em.each<Position>([&incr](Chunk &chunk) {
-    for (size_t i = 0; i < chunk.count; i++) {
-      Position &pos = chunk.getComponent<Position>(i);
-      assert(pos.x == incr && pos.y == incr);
-      incr++;
+  em.each_entity([&incr](Position &pos) {
+    assert(pos.x == incr && pos.y == incr);
+    incr++;
 
-      pos.x += 1;
-      pos.y += 1;
-    }
+    pos.x += 1;
+    pos.y += 1;
   });
 
   incr = 1;
-  em.each<Position>([&incr](Chunk &chunk) {
-    for (size_t i = 0; i < chunk.count; i++) {
-      Position &pos = chunk.getComponent<Position>(i);
-      assert(pos.x == incr && pos.y == incr);
-      incr++;
-    }
+  em.each_entity([&incr](Position &pos) {
+    assert(pos.x == incr && pos.y == incr);
+    incr++;
   });
 
   em = EntityManager();
@@ -219,24 +213,15 @@ int main() {
 
   start = std::chrono::high_resolution_clock::now();
 
-  em.each<Position, Velocity>([](Chunk &chunk) {
-    for (size_t i = 0; i < chunk.count; i++) {
-      Position &pos = chunk.getComponent<Position>(i);
-      Velocity vel = chunk.getComponent<Velocity>(i);
-
-      pos.x += vel.x;
-      pos.y += vel.y;
-    }
+  em.each_entity([](Position &pos, Velocity vel) {
+    pos.x += vel.x;
+    pos.y += vel.y;
   });
 
-  em.each<Comflabulation>([](Chunk &chunk) {
-    for (size_t i = 0; i < chunk.count; i++) {
-      Comflabulation &conf = chunk.getComponent<Comflabulation>(i);
-
-      conf.thingy *= 1.000001f;
-      conf.mingy = !conf.mingy;
-      conf.dingy++;
-    }
+  em.each_entity([](Comflabulation &conf) {
+    conf.thingy *= 1.000001f;
+    conf.mingy = !conf.mingy;
+    conf.dingy++;
   });
 
   finish = std::chrono::high_resolution_clock::now();
