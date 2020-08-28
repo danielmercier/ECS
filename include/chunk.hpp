@@ -19,7 +19,7 @@ struct ChunkLayout
    ChunkLayout() = default;
 };
 
-ChunkLayout computeChunkLayout(Archetype archetype) noexcept
+static ChunkLayout computeChunkLayout(Archetype archetype) noexcept
 {
    ChunkLayout layout;
    layout.archetype = archetype;
@@ -31,7 +31,7 @@ ChunkLayout computeChunkLayout(Archetype archetype) noexcept
    {
       if (archetype[type])
       {
-          entitySize += ComponentTypeId::size(static_cast<ComponentType>(type));
+          entitySize += componentSize(static_cast<ComponentType>(type));
       }
    }
 
@@ -47,7 +47,7 @@ ChunkLayout computeChunkLayout(Archetype archetype) noexcept
       if (archetype[type])
       {
          layout.componentStart[type] = currentStart;
-         currentStart += layout.capacity * ComponentTypeId::size(static_cast<ComponentType>(type));
+         currentStart += layout.capacity * componentSize(static_cast<ComponentType>(type));
       }
    }
 
@@ -85,10 +85,10 @@ struct Chunk
    template<typename C>
    inline C& getComponent(size_t index)
    {
-      assert(layout->archetype[ComponentTypeId::id<C>()]);
+      assert(layout->archetype[componentType<C>()]);
       assert(index < count);
 
-      size_t memoryIndex = computeIndex(ComponentTypeId::id<C>(), index, sizeof(C));
+      size_t memoryIndex = computeIndex(componentType<C>(), index, sizeof(C));
 
       assert(memoryIndex < CHUNK_SIZE);
 
@@ -98,9 +98,9 @@ struct Chunk
    template<typename C>
    inline void setComponent(size_t index, const C& component)
    {
-      assert(layout->archetype[ComponentTypeId::id<C>()]);
+      assert(layout->archetype[componentType<C>()]);
 
-      size_t memoryIndex = computeIndex(ComponentTypeId::id<C>(), index, sizeof(C));
+      size_t memoryIndex = computeIndex(componentType<C>(), index, sizeof(C));
 
       assert(memoryIndex < CHUNK_SIZE);
 

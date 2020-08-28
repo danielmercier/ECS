@@ -39,8 +39,8 @@ template <typename... C> ChunkLayout computeChunkLayout() {
 }
 
 template <typename C1, typename C2> void checkLayout(ChunkLayout layout) {
-  ComponentType c1 = ComponentTypeId::id<C1>();
-  ComponentType c2 = ComponentTypeId::id<C2>();
+  ComponentType c1 = componentType<C1>();
+  ComponentType c2 = componentType<C2>();
 
   assert(layout.componentStart[c1] == 0);
 
@@ -54,9 +54,9 @@ template <typename C1, typename C2> void checkLayout(ChunkLayout layout) {
 }
 
 int main() {
-  ComponentType renderId = ComponentTypeId::id<Render>();
-  ComponentType positionId = ComponentTypeId::id<Position>();
-  ComponentType velocityId = ComponentTypeId::id<Velocity>();
+  ComponentType renderId = componentType<Render>();
+  ComponentType positionId = componentType<Position>();
+  ComponentType velocityId = componentType<Velocity>();
 
   Archetype archetypeOracle;
   archetypeOracle.set(renderId);
