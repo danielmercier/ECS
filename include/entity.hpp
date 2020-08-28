@@ -13,6 +13,7 @@
 
 #include <iostream>
 
+#include "functor_traits.hpp"
 #include "component.hpp"
 #include "chunk.hpp"
 
@@ -93,6 +94,26 @@ public:
    inline void each(std::function<void(Chunk& chunk)> exec)
    {
       return each(computeArchetype<Cs...>(), exec);
+   }
+
+   // Call the given function with the components of all entities that contain
+   // the given component types
+   template<typename... Cs>
+   inline void each_entity(std::function<void(Cs...)> exec)
+   {
+      return each<Cs...>([&exec](Chunk& chunk) {
+         for (size_t i = 0; i < chunk.count; ++i) {
+            exec(chunk.getComponent<std::decay_t<Cs>>(i)...);
+         }
+      });
+   }
+
+   // Call the given functor with the components of all entities that contain
+   // the component type as specified by the functor's parameter types.
+   template<typename F>
+   inline void each_entity(F&& f)
+   {
+      each_entity(static_cast<typename functor_traits<F>::function_type>(f));
    }
 
    // Get the location of an entity in the chunk data structure
