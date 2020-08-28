@@ -171,7 +171,7 @@ int main() {
   // ITERATIONS
   // Iterate over all position
   // Use incr to check for all position added just above
-  size_t incr = 0;
+  int incr = 0;
   em.each<Position>([&incr](Chunk &chunk) {
     for (size_t i = 0; i < chunk.count; i++) {
       Position &pos = chunk.getComponent<Position>(i);
