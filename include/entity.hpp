@@ -70,7 +70,7 @@ public:
 
       return e;
    }
-   
+
    // Set the given comoponent of the given entity
    template<typename C>
    inline void setComponent(Entity e, const C& component)
@@ -124,7 +124,7 @@ private:
 
    // Keep track of where an entity is in the chunkFamilies
    std::vector<std::optional<EntityLocation>> entityToLocation;
-   
+
    // Keep ownership of al chunk kinds created
    std::vector<std::unique_ptr<ChunkLayout>> layouts;
 
@@ -175,13 +175,13 @@ private:
          size_t layoutIndex = layouts.size();
          layouts.emplace_back(new ChunkLayout(computeChunkLayout(archetype)));
          ChunkLayout* layout = layouts[layoutIndex].get();
-         
+
          // First chunk
          chunkFamilies[familyIndex.value()].chunks.emplace_back(layout);
          return { familyIndex.value(), 0, 0 };
       }
    }
-   
+
    inline Chunk& get(EntityLocation loc) noexcept
    {
       return chunkFamilies[loc.chunkFamily].chunks[loc.chunkIndex];
@@ -193,7 +193,7 @@ private:
       entityToLocation[e] = loc;
       get(loc).count++;
    }
-   
+
    // TODO: might be usefull to add a create entity function that creates a
    // bunch of entities instead of one by one. Woule increase perfs. This
    // might be done with a command buffer to prepare some creation before
