@@ -93,27 +93,18 @@ public:
    template<typename... Cs>
    inline void each(std::function<void(Chunk& chunk)> exec)
    {
-      return each(computeArchetype<Cs...>(), exec);
-   }
-
-   // Call the given function with the components of all entities that contain
-   // the given component types
-   template<typename... Cs>
-   inline void each_entity(std::function<void(Cs...)> exec)
-   {
-      return each<Cs...>([&exec](Chunk& chunk) {
-         for (size_t i = 0; i < chunk.count; ++i) {
-            exec(chunk.getComponent<std::decay_t<Cs>>(i)...);
-         }
-      });
+      each(computeArchetype<Cs...>(), exec);
    }
 
    // Call the given functor with the components of all entities that contain
    // the component type as specified by the functor's parameter types.
    template<typename F>
-   inline void each_entity(F&& f)
+   inline void each_entity(F&& func)
    {
-      each_entity(static_cast<typename functor_traits<F>::function_type>(f));
+      using functor_trait = functor_traits<F>;
+
+      each_entity_helper(std::forward<F>(func),
+         std::make_index_sequence<functor_trait::nargs::value>{});
    }
 
    // Get the location of an entity in the chunk data structure
@@ -175,10 +166,10 @@ private:
          size_t lastChunk = family.chunks.size() - 1;
          // Check if the last chunk is ok
          Chunk& last = family.chunks[lastChunk];
-         if (last.layout->capacity > last.count)
+         if (last.layout->capacity > last.count())
          {
             // Fine, return it
-            return { familyIndex.value(), lastChunk, last.count };
+            return { familyIndex.value(), lastChunk, last.count() };
          }
          else
          {
@@ -212,7 +203,7 @@ private:
    {
       EntityLocation loc = availableLocation(archetype);
       entityToLocation[e] = loc;
-      get(loc).count++;
+      get(loc).m_count++;
    }
 
    // TODO: might be usefull to add a create entity function that creates a
@@ -260,5 +251,18 @@ private:
             }
          }
       }
+   }
+
+   // Helper function to call exec on each entity using the signature of F to gather components
+   template<typename F, size_t... I>
+   inline void each_entity_helper(F&& exec, std::index_sequence<I...>)
+   {
+      using functor_trait = functor_traits<F>;
+      static_assert((std::is_pointer_v<functor_trait::arg_t<I>> && ... && true),
+         "Function parameter should be pointers");
+
+      each<std::remove_pointer_t<functor_trait::arg_t<I>>...>([&exec](Chunk& chunk) {
+         chunk.each(std::forward<F>(exec));
+      });
    }
 };

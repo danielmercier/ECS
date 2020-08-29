@@ -172,17 +172,17 @@ int main() {
   // Iterate over all position
   // Use incr to check for all position added just above
   int incr = 0;
-  em.each_entity([&incr](Position &pos) {
-    assert(pos.x == incr && pos.y == incr);
+  em.each_entity([&incr](Position *pos) {
+    assert(pos->x == incr && pos->y == incr);
     incr++;
 
-    pos.x += 1;
-    pos.y += 1;
+    pos->x += 1;
+    pos->y += 1;
   });
 
   incr = 1;
-  em.each_entity([&incr](Position &pos) {
-    assert(pos.x == incr && pos.y == incr);
+  em.each_entity([&incr](Position *pos) {
+    assert(pos->x == incr && pos->y == incr);
     incr++;
   });
 
@@ -209,25 +209,25 @@ int main() {
 
   auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
-  std::cout << elapsed.count() << std::endl;
+  std::cout << "Create " << NB_ENTITIES << " entities: " << elapsed.count() << std::endl;
 
   start = std::chrono::high_resolution_clock::now();
 
-  em.each_entity([](Position &pos, Velocity vel) {
-    pos.x += vel.x;
-    pos.y += vel.y;
+  em.each_entity([](Position *pos, Velocity *vel) {
+    pos->x += vel->x;
+    pos->y += vel->y;
   });
 
-  em.each_entity([](Comflabulation &conf) {
-    conf.thingy *= 1.000001f;
-    conf.mingy = !conf.mingy;
-    conf.dingy++;
+  em.each_entity([](Comflabulation *conf) {
+    conf->thingy *= 1.000001f;
+    conf->mingy = !conf->mingy;
+    conf->dingy++;
   });
 
   finish = std::chrono::high_resolution_clock::now();
   elapsed = finish - start;
 
-  std::cout << elapsed.count() << std::endl;
+  std::cout << "Update " << NB_ENTITIES << " entities with 2 systems: " << elapsed.count() << std::endl;
 
   // Test tag
   Entity enemy = em.createEntity<Position, Velocity, EnemyTag>();
@@ -236,7 +236,7 @@ int main() {
   int called = 0;
 
   em.each<EnemyTag>([&called](Chunk &chunk) {
-    assert(chunk.count == 1);
+    assert(chunk.count() == 1);
     called++;
   });
 
