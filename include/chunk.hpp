@@ -70,6 +70,19 @@ void set(const ChunkLayout *layout, std::vector<uint8_t>& memory, std::tuple<Ts*
    }
 }
 
+template<typename... Ts, size_t... I>
+auto deref_helper(std::tuple<Ts...>& pointers, std::index_sequence<I...>)
+{
+   return std::tie(*std::get<I>(pointers)...);
+}
+
+// Return a new tuple dereferencing each value in the given tuple
+template<typename... Ts>
+auto deref(std::tuple<Ts...>& pointers)
+{
+   return deref_helper(pointers, std::make_index_sequence<sizeof...(Ts)>{});
+}
+
 struct Chunk
 {
    // Pointer to a chunk kind, just a view to it
@@ -116,13 +129,11 @@ struct Chunk
       memcpy(&m_memory[memoryIndex], &component, sizeof(C));
    }
 
+   // Call the given functor with the components specified by the functor's parameter types.
    template<typename F>
-   inline void each(F&& exec)
+   inline void each(F&& func)
    {
-      using functor_trait = functor_traits<F>;
-
-      each_helper(std::forward<F>(exec),
-         std::make_index_sequence<functor_trait::nargs::value>{});
+      each_helper(std::forward<F>(func), typename functor_traits<F>::args_pointer_t{});
    }
 
    inline size_t count()
@@ -133,26 +144,21 @@ struct Chunk
 private:
    friend struct EntityManager;
 
-   template<typename F, size_t... I>
-   inline void each_helper(F&& func, std::index_sequence<I...>)
-   {
-      using functor_trait = functor_traits<F>;
-      static_assert((std::is_pointer_v<functor_trait::arg_t<I>> && ... && true),
-         "Function parameters should be pointers");
-
-      std::tuple<std::remove_const_t<functor_trait::arg_t<I>>...> pointers;
-      set(layout, m_memory, pointers);
-
-      for (size_t i = 0; i < m_count; i++)
-      {
-         std::apply(func, pointers);
-         std::apply([](auto&&... args) {((args++), ...);}, pointers);
-      }
-   }
-
    // Number of entities in chunk
    size_t m_count;
 
    // The fixed memory content of this chunk
    std::vector<uint8_t> m_memory;
+
+   template<typename F, typename... Cs>
+   inline void each_helper(F&& func, std::tuple<Cs...> pointers)
+   {
+      set(layout, m_memory, pointers);
+
+      for (size_t i = 0; i < m_count; i++)
+      {
+         std::apply(func, deref(pointers));
+         std::apply([](auto&&... args) {((args++), ...);}, pointers);
+      }
+   }
 };

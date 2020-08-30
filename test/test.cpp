@@ -172,17 +172,19 @@ int main() {
   // Iterate over all position
   // Use incr to check for all position added just above
   int incr = 0;
-  em.each_entity([&incr](Position *pos) {
-    assert(pos->x == incr && pos->y == incr);
+  em.each_entity([&incr](Position &pos) {
+    assert(pos.x == incr && pos.y == incr);
     incr++;
 
-    pos->x += 1;
-    pos->y += 1;
+    pos.x += 1;
+    pos.y += 1;
   });
 
+  assert(incr == 6);
+
   incr = 1;
-  em.each_entity([&incr](Position *pos) {
-    assert(pos->x == incr && pos->y == incr);
+  em.each_entity([&incr](Position &pos) {
+    assert(pos.x == incr && pos.y == incr);
     incr++;
   });
 
@@ -213,15 +215,15 @@ int main() {
 
   start = std::chrono::high_resolution_clock::now();
 
-  em.each_entity([](Position *pos, Velocity *vel) {
-    pos->x += vel->x;
-    pos->y += vel->y;
+  em.each_entity([](Position &pos, const Velocity &vel) {
+    pos.x += vel.x;
+    pos.y += vel.y;
   });
 
-  em.each_entity([](Comflabulation *conf) {
-    conf->thingy *= 1.000001f;
-    conf->mingy = !conf->mingy;
-    conf->dingy++;
+  em.each_entity([](Comflabulation &conf) {
+    conf.thingy *= 1.000001f;
+    conf.mingy = !conf.mingy;
+    conf.dingy++;
   });
 
   finish = std::chrono::high_resolution_clock::now();

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <functional>
 
 template <typename Functor>
@@ -10,11 +9,9 @@ struct functor_traits<ReturnType(ClassType::*)(ArgTypes...) const>
 {
    using function_type = std::function<ReturnType(ArgTypes...)>;
 
-   struct nargs : std::integral_constant<size_t, sizeof...(ArgTypes)> {};
+   using args_t = std::tuple<ArgTypes...>;
 
-   template <size_t I>
-   struct arg : std::tuple_element<I, std::tuple<ArgTypes...>> {};
+   using args_decay_t = std::tuple<std::decay_t<ArgTypes>...>;
 
-   template<size_t I>
-   using arg_t = typename arg<I>::type;
+   using args_pointer_t = std::tuple<std::decay_t<ArgTypes>*...>;
 };
