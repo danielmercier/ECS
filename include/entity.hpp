@@ -163,7 +163,7 @@ private:
          size_t lastChunk = family.chunks.size() - 1;
          // Check if the last chunk is ok
          Chunk& last = family.chunks[lastChunk];
-         if (last.layout->capacity > last.count())
+         if (last.layout.capacity > last.count())
          {
             // Fine, return it
             return { familyIndex.value(), lastChunk, last.count() };
@@ -183,7 +183,7 @@ private:
 
          size_t layoutIndex = layouts.size();
          layouts.emplace_back(new ChunkLayout(computeChunkLayout(archetype)));
-         ChunkLayout* layout = layouts[layoutIndex].get();
+         const ChunkLayout& layout = *layouts[layoutIndex];
 
          // First chunk
          chunkFamilies[familyIndex.value()].chunks.emplace_back(layout);

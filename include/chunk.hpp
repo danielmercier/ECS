@@ -56,12 +56,12 @@ static ChunkLayout computeChunkLayout(Archetype archetype) noexcept
 
 // Set all pointers in the tuple to the start in memory according to the layout
 template<size_t I = 0, typename... Ts>
-void set(const ChunkLayout *layout, std::vector<uint8_t>& memory, std::tuple<Ts*...>& t)
+void set(const ChunkLayout& layout, std::vector<uint8_t>& memory, std::tuple<Ts*...>& t)
 {
    using Component = std::tuple_element_t<I, std::tuple<Ts...>>;
 
    ComponentType type = componentType<std::decay_t<Component>>();
-   size_t start = layout->componentStart[type];
+   size_t start = layout.componentStart[type];
    std::get<I>(t) = reinterpret_cast<Component*>(&memory[start]);
 
    if constexpr (I + 1 != sizeof...(Ts))
@@ -85,29 +85,26 @@ auto deref(std::tuple<Ts...>& pointers)
 
 struct Chunk
 {
-   // Pointer to a chunk kind, just a view to it
-   const ChunkLayout* layout;
+   const ChunkLayout& layout;
 
-   explicit Chunk(const ChunkLayout* chunkLayout) : layout(chunkLayout), m_count(0), m_memory(CHUNK_SIZE)
+   explicit Chunk(const ChunkLayout& chunkLayout) : layout(chunkLayout), m_count(0), m_memory(CHUNK_SIZE)
    {
    }
 
-   Chunk(const ChunkLayout&) = delete;
-   Chunk(ChunkLayout&&) = delete;
    Chunk& operator=(const Chunk&) = delete;
 
    inline size_t computeIndex(ComponentType type, size_t index, size_t size)
    {
-      assert(layout->archetype[type]);
+      assert(layout.archetype[type]);
 
-      size_t start = layout->componentStart[type];
+      size_t start = layout.componentStart[type];
       return start + index * size;
    }
 
    template<typename C>
    inline C& getComponent(size_t index)
    {
-      assert(layout->archetype[componentType<C>()]);
+      assert(layout.archetype[componentType<C>()]);
       assert(index < m_count);
 
       size_t memoryIndex = computeIndex(componentType<C>(), index, sizeof(C));
@@ -120,7 +117,7 @@ struct Chunk
    template<typename C>
    inline void setComponent(size_t index, const C& component)
    {
-      assert(layout->archetype[componentType<C>()]);
+      assert(layout.archetype[componentType<C>()]);
 
       size_t memoryIndex = computeIndex(componentType<C>(), index, sizeof(C));
 
