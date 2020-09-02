@@ -1,4 +1,5 @@
 #include "entity.hpp"
+#include "jobsystem.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -189,6 +190,7 @@ int main() {
   });
 
   em = EntityManager();
+  JobSystem jobSystem;
 
   // Let's create a big number of entities
   const int NB_ENTITIES = 100000;
@@ -229,7 +231,55 @@ int main() {
   finish = std::chrono::high_resolution_clock::now();
   elapsed = finish - start;
 
-  std::cout << "Update " << NB_ENTITIES << " entities with 2 systems: " << elapsed.count() << std::endl;
+  std::cout << "Update " << NB_ENTITIES << " entities with 2 systems (sequential): " << elapsed.count() << std::endl;
+
+  start = std::chrono::high_resolution_clock::now();
+
+  em.each<Position, Velocity>([&jobSystem](Chunk& chunk) {
+     JobHandle handle = jobSystem.schedule([&chunk] {chunk.each([](Position& pos, const Velocity& vel) {
+        pos.x += vel.x;
+        pos.y += vel.y;
+     });});
+     jobSystem.wait(handle);
+  });
+
+  em.each<Comflabulation>([&jobSystem](Chunk& chunk) {
+     JobHandle handle = jobSystem.schedule([&chunk] {chunk.each([](Comflabulation& conf) {
+        conf.thingy *= 1.000001f;
+        conf.mingy = !conf.mingy;
+        conf.dingy++;
+     });});
+     jobSystem.wait(handle);
+  });
+
+  finish = std::chrono::high_resolution_clock::now();
+  elapsed = finish - start;
+
+  std::cout << "Update " << NB_ENTITIES << " entities with 2 systems (sequential using job system wait): " << elapsed.count() << std::endl;
+
+  start = std::chrono::high_resolution_clock::now();
+
+  em.each<Position, Velocity>([&jobSystem](Chunk& chunk) {
+     JobHandle handle = jobSystem.schedule([&chunk] {chunk.each([](Position& pos, const Velocity& vel) {
+        pos.x += vel.x;
+        pos.y += vel.y;
+     });});
+  });
+
+  em.each<Comflabulation>([&jobSystem](Chunk& chunk) {
+     JobHandle handle = jobSystem.schedule([&chunk] {chunk.each([](Comflabulation& conf) {
+        conf.thingy *= 1.000001f;
+        conf.mingy = !conf.mingy;
+        conf.dingy++;
+     });});
+  });
+
+  jobSystem.waitAll();
+
+  finish = std::chrono::high_resolution_clock::now();
+  elapsed = finish - start;
+
+  std::cout << "Update " << NB_ENTITIES << " entities with 2 systems (full parallel): " << elapsed.count() << std::endl;
 
   // Test tag
   Entity enemy = em.createEntity<Position, Velocity, EnemyTag>();
