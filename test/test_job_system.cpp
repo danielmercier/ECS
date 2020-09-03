@@ -28,6 +28,8 @@ int main()
 
    std::cout << "AFTER ALL HELLO\n";
 
+   jobSystem.waitAll();
+
    // Try to depend on multiple tasks
    root = jobSystem.create([] {});
 
@@ -40,7 +42,7 @@ int main()
    JobHandle taskD = jobSystem.create([] {
       std::this_thread::sleep_for(std::chrono::seconds(1));
       std::cout << "TASK D!!!\n";
-   }, root);
+   });
 
    jobSystem.schedule(taskD, root);
    jobSystem.schedule(taskA);

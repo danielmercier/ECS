@@ -193,7 +193,7 @@ int main() {
   JobSystem jobSystem;
 
   // Let's create a big number of entities
-  const int NB_ENTITIES = 50000000;
+  const int NB_ENTITIES = 100000;
 
   auto start = std::chrono::high_resolution_clock::now();
 
@@ -297,9 +297,6 @@ int main() {
   });
 
   assert(called == 1);
-
-  int x;
-  std::cin >> x;
 
   return 0;
 }

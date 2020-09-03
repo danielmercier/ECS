@@ -48,9 +48,7 @@ public:
       handle.id = next_free;
       handle.version = (*m_version)[next_free].load(std::memory_order_relaxed);
 
-      Job& job = (*m_pool)[next_free];
-      job.m_task = std::move(task);
-      job.m_unfinished.store(1, std::memory_order_relaxed);
+      (*m_pool)[next_free].init(std::move(task));
 
       return true;
    }
@@ -68,10 +66,7 @@ public:
       handle.id = next_free;
       handle.version = (*m_version)[next_free].load(std::memory_order_relaxed);
 
-      Job& job = (*m_pool)[next_free];
-      job.m_task = std::move(task);
-      job.m_parent = parent;
-      job.m_unfinished.store(1, std::memory_order_relaxed);
+      (*m_pool)[next_free].init(std::move(task), parent);
 
       // This is not very safe, the user is resonsible of scheduling the parent after children
       (*m_pool)[parent.id].m_unfinished.fetch_add(1, std::memory_order_relaxed);
@@ -144,6 +139,20 @@ private:
 
       // Jobs that should be executed when this job is finised
       std::vector<JobHandle> m_continuations;
+
+      void init(std::function<void()>&& task)
+      {
+         m_task = std::move(task);
+         m_parent = std::nullopt;
+         m_unfinished.store(1, std::memory_order_relaxed);
+         m_continuations.clear();
+      }
+
+      void init(std::function<void()>&& task, JobHandle parent)
+      {
+         init(std::move(task));
+         m_parent = parent;
+      }
    };
 
    static constexpr size_t POOL_SIZE = 65536;
@@ -158,7 +167,7 @@ class JobSystem
 public:
    JobSystem() : m_pending(0)
    {
-      const int thread_count = std::max(static_cast<unsigned int>(1), std::thread::hardware_concurrency() - 1);
+      const size_t thread_count = std::max(static_cast<unsigned int>(1), std::thread::hardware_concurrency() - 1);
       m_wokers.reserve(thread_count);
 
       for (size_t i = 0; i < thread_count; i++)
