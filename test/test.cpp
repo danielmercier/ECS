@@ -193,7 +193,7 @@ int main() {
   JobSystem jobSystem;
 
   // Let's create a big number of entities
-  const int NB_ENTITIES = 100000;
+  const int NB_ENTITIES = 50000000;
 
   auto start = std::chrono::high_resolution_clock::now();
 
@@ -236,19 +236,21 @@ int main() {
   start = std::chrono::high_resolution_clock::now();
 
   em.each<Position, Velocity>([&jobSystem](Chunk& chunk) {
-     JobHandle handle = jobSystem.schedule([&chunk] {chunk.each([](Position& pos, const Velocity& vel) {
+     JobHandle handle = jobSystem.create([&chunk] {chunk.each([](Position& pos, const Velocity& vel) {
         pos.x += vel.x;
         pos.y += vel.y;
      });});
+     jobSystem.schedule(handle);
      jobSystem.wait(handle);
   });
 
   em.each<Comflabulation>([&jobSystem](Chunk& chunk) {
-     JobHandle handle = jobSystem.schedule([&chunk] {chunk.each([](Comflabulation& conf) {
+     JobHandle handle = jobSystem.create([&chunk] {chunk.each([](Comflabulation& conf) {
         conf.thingy *= 1.000001f;
         conf.mingy = !conf.mingy;
         conf.dingy++;
      });});
+     jobSystem.schedule(handle);
      jobSystem.wait(handle);
   });
 
@@ -260,18 +262,20 @@ int main() {
   start = std::chrono::high_resolution_clock::now();
 
   em.each<Position, Velocity>([&jobSystem](Chunk& chunk) {
-     JobHandle handle = jobSystem.schedule([&chunk] {chunk.each([](Position& pos, const Velocity& vel) {
+     JobHandle handle = jobSystem.create([&chunk] {chunk.each([](Position& pos, const Velocity& vel) {
         pos.x += vel.x;
         pos.y += vel.y;
      });});
+     jobSystem.schedule(handle);
   });
 
   em.each<Comflabulation>([&jobSystem](Chunk& chunk) {
-     JobHandle handle = jobSystem.schedule([&chunk] {chunk.each([](Comflabulation& conf) {
+     JobHandle handle = jobSystem.create([&chunk] {chunk.each([](Comflabulation& conf) {
         conf.thingy *= 1.000001f;
         conf.mingy = !conf.mingy;
         conf.dingy++;
      });});
+     jobSystem.schedule(handle);
   });
 
   jobSystem.waitAll();
@@ -293,6 +297,9 @@ int main() {
   });
 
   assert(called == 1);
+
+  int x;
+  std::cin >> x;
 
   return 0;
 }
